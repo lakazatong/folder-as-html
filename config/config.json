@@ -1,5 +1,5 @@
 {
-    "folder-to-html": {
+    "folder-as-html": {
         "extensionWhitelist": [
             "", "nuspec", "storyboard", "licenseheader", "manifest", "dotsettings",
             "gitignore", "txt", "slnf", "sh", "json", "osu", "sln", "csproj", "bat",

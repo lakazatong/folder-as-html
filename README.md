@@ -1,4 +1,4 @@
-# folder-to-html
+# folder-as-html
 
 ## Config
 
