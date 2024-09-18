@@ -3,10 +3,19 @@ const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
 
-const config = JSON.parse(fs.readFileSync('config.json', 'utf8'));
-const extensionWhitelist = config.extensionWhitelist;
-const extensionBlacklist = config.extensionBlacklist;
-const includeHiddenFiles = config.includeHiddenFiles;
+require('extend-console');
+
+const { name: packageName } = require(path.join(__dirname, 'package.json'));
+const configPath = './config/config.json';
+
+let config = JSON.parse(fs.readFileSync(configPath, 'utf8'))[packageName];
+if (!config) {
+	// load default config
+	config = require(configPath)[packageName];
+}
+const extensionWhitelist = config.extensionWhitelist || ['txt'];
+const extensionBlacklist = config.extensionBlacklist || [];
+const includeHiddenFiles = config.includeHiddenFiles || false;
 
 function escapeHtml(content) {
     return content
@@ -59,7 +68,6 @@ async function walkDir(dirPath, callback) {
 }
 
 function buildHtmlTreeFromPath(filePath, stats) {
-    const functionName = 'buildHtmlTreeFromPath';
     try {
         if (!stats.isFile()) return;
         
@@ -71,7 +79,7 @@ function buildHtmlTreeFromPath(filePath, stats) {
 
         if ((filename.startsWith('.') && !includeHiddenFiles) || extensionBlacklist.includes(extname)) return;
         if (!extensionWhitelist.includes(extname)) {
-            console.warn(`Did not include ${filePath} (${extname})`);
+            console.reportWarn(`Did not include ${filePath} (${extname})`);
             return;
         }
 
@@ -107,12 +115,11 @@ function buildHtmlTreeFromPath(filePath, stats) {
             content: escapeHtml(fs.readFileSync(filePath, 'utf8'))
         });
     } catch (err) {
-        console.error(functionName, err);
+        console.reportError(err);
     }
 }
 
 function generateHTML(root) {
-    const functionName = 'generateHTML';
     try {
         const createDiv = (item) => {
             if (item.type === 'folder') {
@@ -187,12 +194,11 @@ function generateHTML(root) {
             </html>
         `;
     } catch (err) {
-        console.error(functionName, err);
+        console.reportError(err);
     }
 }
 
 function getFromPath(root, path) {
-    const functionName = 'getFromPath';
     try {
         const pathParts = path.split('/');
         if (pathParts[0] === root.name) pathParts.shift();
@@ -213,12 +219,11 @@ function getFromPath(root, path) {
 
         return node;
     } catch (err) {
-        console.error(functionName, err);
+        console.reportError(err);
     }
 }
 
 async function folderToHTML(folderPath, htmlPath) {
-    const functionName = 'folderToHTML';
     try {
         const dirname = path.basename(folderPath);
         const root = {
@@ -233,12 +238,11 @@ async function folderToHTML(folderPath, htmlPath) {
         
         fs.writeFileSync(htmlPath, generateHTML(root));
     } catch (err) {
-        console.error(functionName, err);
+        console.reportError(err);
     }
 }
 
 async function main() {
-    const functionName = 'main';
     try {
         const repoUrl = process.argv[2];
         if (!repoUrl) {
@@ -248,16 +252,16 @@ async function main() {
         const repoName = path.basename(repoUrl);
 
         if (!fs.existsSync(repoName)) {
-            console.log(`Cloning ${repoUrl}...`);
+            console.report(`Cloning ${repoUrl}...`);
             await cloneRepo(repoUrl);      
             await rmDir(path.join(repoName, '.git'));
         }
         
         const htmlPath = `${repoName}.html`;
-        console.log(`Generating ${htmlPath}...`);
+        console.report(`Generating ${htmlPath}...`);
         await folderToHTML(repoName, htmlPath);
     } catch (err) {
-        console.error(functionName, err);
+        console.reportError(err);
     }
 }
 

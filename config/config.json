@@ -1,0 +1,15 @@
+{
+    "folder-to-html": {
+        "extensionWhitelist": [
+            "", "nuspec", "storyboard", "licenseheader", "manifest", "dotsettings",
+            "gitignore", "txt", "slnf", "sh", "json", "osu", "sln", "csproj", "bat",
+            "ini", "xml", "props", "ruleset", "yml", "osz", "osb", "fs", "vs", "plist",
+            "md", "ps1", "py", "c", "h", "cc", "hh", "cpp", "hpp", "rs", "go", "js", "cs"
+        ],
+        "extensionBlacklist": [
+            "res", "png", "mp3", "mp4", "wav", "db", "osr", "osz", "osk", "ogg",
+            "webm", "ico"
+        ],
+        "includeHiddenFiles": false
+    }
+}
