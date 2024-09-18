@@ -1,6 +1,6 @@
 {
   "name": "folder-to-html",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Parses a folder into an HTML page of equivalent structure containing all text files content",
   "main": "index.js",
   "scripts": {
