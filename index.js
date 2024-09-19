@@ -106,21 +106,29 @@ function buildHtmlTreeFromPath(filePath, stats) {
             node = newNode;
         }
         
+        let content = fs.readFileSync(filePath, 'utf8');
+        if (this.doEscapeHtml) content = escapeHtml(content);
         node.children.push({
             type: 'file',
             name: basename,
             ext: extname,
             size: stats.size,
             path: filePath,
-            content: escapeHtml(fs.readFileSync(filePath, 'utf8'))
+            content: content,
+            contentLength: content.length,
+            done: false
         });
     } catch (err) {
         console.reportError(err);
     }
 }
 
-function generateHTML(root) {
+let count = 0;
+
+function generateHTML(root, lengthLimitPerFile) {
     try {
+        let currentLength = 0;
+        let done = true;
         const createDiv = (item) => {
             if (item.type === 'folder') {
                 return `
@@ -132,6 +140,11 @@ function generateHTML(root) {
                     </div>
                 `;
             } else if (item.type === 'file') {
+                if (item.done || currentLength + item.contentLength >= lengthLimitPerFile) return '';
+                item.done = true;
+                done = false;
+                currentLength += item.contentLength;
+                count++;
                 return `
                     <div class="file">
                         <div class="file-name">${item.name}.${item.ext}</div>
@@ -142,6 +155,8 @@ function generateHTML(root) {
             return '';
         };
     
+        const body = createDiv(root);
+        if (done) return null;
         return `
             <!DOCTYPE html>
             <html>
@@ -189,7 +204,7 @@ function generateHTML(root) {
                 </style>
             </head>
             <body>
-                ${createDiv(root)}
+                ${body}
             </body>
             </html>
         `;
@@ -223,7 +238,7 @@ function getFromPath(root, path) {
     }
 }
 
-async function folderToHTML(folderPath, htmlPath) {
+async function folderToHTML(folderPath, htmlPath, lengthLimitPerFile=Infinity) {
     try {
         const dirname = path.basename(folderPath);
         const root = {
@@ -233,10 +248,24 @@ async function folderToHTML(folderPath, htmlPath) {
             path: dirname,
             children: []
         };
-        const boundCallback = buildHtmlTreeFromPath.bind({ root });
+        const boundCallback = buildHtmlTreeFromPath.bind({ root, doEscapeHtml: false });
         await walkDir(dirname, boundCallback);
         
-        fs.writeFileSync(htmlPath, generateHTML(root));
+        const parts = path.basename(htmlPath).split('.');
+        const filename = parts[0];
+        let ext = '';
+        if (parts.length > 1) {
+            ext = '.' + parts[1];
+        }
+        let htmlContent;
+        let i = 0;
+        do {
+            htmlContent = generateHTML(root, lengthLimitPerFile);
+            if (!htmlContent) break;
+            fs.writeFileSync(`${path.dirname(htmlPath)}/${filename}${i}${ext}`, htmlContent);
+            i++;
+        } while (true);
+        console.log(count);
     } catch (err) {
         console.reportError(err);
     }
@@ -257,9 +286,9 @@ async function main() {
             await rmDir(path.join(repoName, '.git'));
         }
         
-        const htmlPath = `${repoName}.html`;
+        const htmlPath = `${repoName}.txt`;
         console.report(`Generating ${htmlPath}...`);
-        await folderToHTML(repoName, htmlPath);
+        await folderToHTML(repoName, htmlPath, 500000);
     } catch (err) {
         console.reportError(err);
     }

@@ -17,6 +17,6 @@
   },
   "homepage": "https://github.com/lakazatong/folder-as-html#readme",
   "dependencies": {
-    "extend-console": "^6.0.1"
+    "extend-console": "^6.0.2"
   }
 }
