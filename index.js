@@ -123,7 +123,7 @@ function buildHtmlTreeFromPath(filePath, stats) {
     }
 }
 
-let count = 0;
+// let count = 0;
 
 function generateHTML(root, lengthLimitPerFile) {
     try {
@@ -144,7 +144,7 @@ function generateHTML(root, lengthLimitPerFile) {
                 item.done = true;
                 done = false;
                 currentLength += item.contentLength;
-                count++;
+                // count++;
                 return `
                     <div class="file">
                         <div class="file-name">${item.name}.${item.ext}</div>
@@ -265,7 +265,7 @@ async function folderToHTML(folderPath, htmlPath, lengthLimitPerFile=Infinity) {
             fs.writeFileSync(`${path.dirname(htmlPath)}/${filename}${i}${ext}`, htmlContent);
             i++;
         } while (true);
-        console.log(count);
+        // console.log(count);
     } catch (err) {
         console.reportError(err);
     }
